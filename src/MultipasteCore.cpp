@@ -25,6 +25,20 @@ QString formatsSignature(const QMimeData *md)
     return f.join(u',');
 }
 
+// SHA-256 of the payload's text form (empty if the payload carries no text).
+// Used for the restart-guard seed: what Klipper hands back after a write/read
+// round-trip is (re)constructed as a plain text/plain payload, so comparing on
+// the text bytes - not the MIME-aware fingerprintOf() - is the stable signal.
+QByteArray textSeedHash(const QMimeData *md)
+{
+    if (!md)
+        return QByteArray();
+    const QString text = md->text();
+    if (text.isEmpty())
+        return QByteArray();
+    return QCryptographicHash::hash(text.toUtf8(), QCryptographicHash::Sha256).toHex();
+}
+
 ClipboardBackend autoPickBackend()
 {
     // Klipper is only meaningful attached to a real desktop selection (its
@@ -294,7 +308,7 @@ QByteArray MultipasteCore::lastExternalTextFingerprintHex() const
 {
     if (m_lastExternalText.isEmpty())
         return QByteArray();
-    return QCryptographicHash::hash(m_lastExternalText, QCryptographicHash::Md5).toHex();
+    return QCryptographicHash::hash(m_lastExternalText, QCryptographicHash::Sha256).toHex();
 }
 
 void MultipasteCore::acceptPayload(const QMimeData *md)
@@ -307,11 +321,14 @@ void MultipasteCore::acceptPayload(const QMimeData *md)
     if (isSelfContent(fp))
         return;
 
-    // Launch-time suppression: the very first payload equals what the previous
-    // run left on the clipboard -> drop it exactly once, then arm nothing.
+    // Launch-time suppression: keep dropping payloads whose TEXT equals what
+    // the previous run left on the clipboard (the seed). The seed stays armed
+    // until the clipboard actually changes - a repeated identical read (Klipper
+    // re-emit, poll safety-net) must not turn into a fresh history entry. The
+    // first different payload clears the guard and is captured normally.
     if (!m_seedFingerprint.isEmpty()) {
-        if (fp == m_seedFingerprint) {
-            m_seedFingerprint.clear();
+        const QByteArray seedHash = textSeedHash(md);
+        if (!seedHash.isEmpty() && seedHash == m_seedFingerprint) {
             appendLog(QStringLiteral("ignored pre-existing clipboard (previous run)"));
             return;
         }
@@ -356,6 +373,12 @@ void MultipasteCore::acceptPayload(const QMimeData *md)
     delete m_lastForeignCopy;
     m_lastForeignCopy = HistoryItem::deepCopy(md).release();
     m_lastForeignFormatsSignature = formatsSignature(md);
+
+    // Track the last accepted external text so the restart-guard seed is
+    // meaningful on every capture path (onExternalText already does this for
+    // the external backends; QClipboard never goes through it).
+    if (!text.isEmpty())
+        m_lastExternalText = text;
 
     appendLog(QStringLiteral("COPIED  %1  (item %2 of %3)")
                   .arg(m_items.back().description())

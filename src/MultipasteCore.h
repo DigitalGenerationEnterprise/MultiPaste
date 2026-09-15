@@ -133,14 +133,14 @@ public:
 
     // Ignore the pre-existing clipboard content on startup when it matches
     // what a previous MultiPaste run left behind (persisted by the app as the
-    // fingerprint of the last external text). Without this, every restart
-    // re-captures the app's own final paste as a spurious first item.
+    // SHA-256 of the last external text). The guard stays armed while repeated
+    // reads still match the seed, so re-emits cannot fake a fresh entry.
     void seedFromFingerprint(const QByteArray &fingerprint)
     {
         m_seedFingerprint = fingerprint;
     }
 
-    // md5 hex of the last text read/written through the external backend,
+    // SHA-256 hex of the last text read/written through the external backend,
     // so main() can persist it across restarts. Empty when the Qt path is
     // in use (there the self-write ring already covers a single run).
     QByteArray lastExternalTextFingerprintHex() const;

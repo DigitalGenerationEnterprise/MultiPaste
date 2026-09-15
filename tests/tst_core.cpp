@@ -236,13 +236,18 @@ void TestCore::seedSuppressesPreviousRunContent()
     m_core->clearSequence();
     copyText(QStringLiteral("zA"));
     QCOMPARE(m_core->count(), 1);
-    const QByteArray fp = m_core->itemAt(0)->fingerprint();
+    // Use the exact value main.cpp persists into the snapshot: the hash of the
+    // last externally-read text (not the MIME fingerprint).
+    const QByteArray fp = m_core->lastExternalTextFingerprintHex();
+    QVERIFY(!fp.isEmpty());
 
     // A restart: the history is gone but the clipboard still holds "zA".
     m_core->clearSequence();
     m_core->seedFromFingerprint(fp);
     copyText(QStringLiteral("zA")); // must NOT re-enter the history
-    QCOMPARE(m_core->count(), 0);
+    copyText(QStringLiteral("zA")); // a repeated identical read (klipper
+                                    // re-emit / poll safety net) must also not
+    QCOMPARE(m_core->count(), 0);   // turn into a fresh history entry
     QCOMPARE(m_core->nextIndex(), -1);
 
     // Anything else is captured normally from now on.
