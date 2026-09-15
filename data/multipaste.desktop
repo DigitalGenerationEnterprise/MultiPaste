@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=MultiPaste
+Comment=Sequential multi-copy paste utility
+GenericName=Clipboard Manager
+Exec=multipaste
+Icon=edit-paste
+Terminal=false
+Categories=Utility;TextEditor;System;
+Keywords=clipboard;paste;copy;multi-paste;sequence;
+X-GNOME-Autostart-enabled=true
+StartupNotify=false

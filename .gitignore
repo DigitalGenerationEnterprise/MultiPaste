@@ -1,0 +1,24 @@
+# Build output
+/build*/
+/build/
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CTestTestfile.cmake
+Makefile
+Testing/
+install_manifest.txt
+
+# Editors / OS
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+
+# Local runtime artifacts
+*.log
+# Kate editor swap files
+*.kate-swp

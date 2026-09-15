@@ -1,0 +1,22 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "MultiPaste",
+                "Email": "anthony@kitkat.local"
+            }
+        ],
+        "Category": "System Information",
+        "Description": "Shows what MultiPaste is copying and pasting, and which item is next. One-click Paste Next / New Sequence / Clear.",
+        "Icon": "edit-paste",
+        "Id": "org.multipaste.activity",
+        "License": "MIT",
+        "Name": "MultiPaste Activity",
+        "Version": "1.0.0",
+        "Website": "https://github.com/DigitalGenerationEnterprise/MultiPaste"
+    },
+    "X-KDE-ParentApp": "",
+    "X-Plasma-API-Minimum-Version": "6.0",
+    "X-Plasma-MainScript": "ui/main.qml"
+}
