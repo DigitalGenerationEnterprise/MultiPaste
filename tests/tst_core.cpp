@@ -50,6 +50,7 @@ private slots:
     void capsAtMaxEntries();
     void continuesAfterNewCopies();
     void restoresPreviousClipboard();
+    void seedSuppressesPreviousRunContent();
 
 private:
     QString copyText(const QString &t);
@@ -228,6 +229,26 @@ void TestCore::restoresPreviousClipboard()
     QCOMPARE(lifter->pasteCount, 1);
     QCOMPARE(clipboardText(), QStringLiteral("rB")); // user's previous clipboard back
     QCOMPARE(m_core->count(), 2);                   // no extra history entries
+}
+
+void TestCore::seedSuppressesPreviousRunContent()
+{
+    m_core->clearSequence();
+    copyText(QStringLiteral("zA"));
+    QCOMPARE(m_core->count(), 1);
+    const QByteArray fp = m_core->itemAt(0)->fingerprint();
+
+    // A restart: the history is gone but the clipboard still holds "zA".
+    m_core->clearSequence();
+    m_core->seedFromFingerprint(fp);
+    copyText(QStringLiteral("zA")); // must NOT re-enter the history
+    QCOMPARE(m_core->count(), 0);
+    QCOMPARE(m_core->nextIndex(), -1);
+
+    // Anything else is captured normally from now on.
+    copyText(QStringLiteral("zB"));
+    QCOMPARE(m_core->count(), 1);
+    QCOMPARE(m_core->itemAt(0)->mime()->text(), QStringLiteral("zB"));
 }
 
 int main(int argc, char **argv)

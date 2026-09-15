@@ -2,7 +2,7 @@
 
 #include "ExternalClipboard.h"
 
-#include <QDBusInterface>
+#include <QDBusMessage>
 
 namespace multipaste {
 
@@ -40,10 +40,8 @@ private slots:
 private:
     void readNow();
 
-    QDBusInterface m_iface;
     QByteArray m_lastRead;
     QByteArray m_lastWritten;
-    bool m_internalWrite = false; // true while the setText call is being made
 };
 
 } // namespace multipaste

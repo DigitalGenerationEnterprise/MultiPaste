@@ -227,6 +227,20 @@ The global shortcut is registered with KGlobalAccel (see
 - *Shortcut lost after login:* the self-repair watchdog re-registers it within
   30 s; enable *Repair & Re-sync* in Settings.
 
+### Stability & self-healing
+
+- **Backend escalation:** if the app autostarts before Klipper has registered
+  (a common login race), it briefly falls back to the wl-clipboard bridge; the
+  30 s repair watchdog switches to Klipper as soon as it becomes available —
+  no manual action needed.
+- **Restart re-capture guard:** a restart no longer records the clipboard text
+  the previous run left behind. The app persists the fingerprint of its last
+  read/write in the widget snapshot (field `seed`) and drops exactly one match
+  at launch (a copy made right after a fresh start is always kept).
+- **Bounded D-Bus calls:** every synchronous Klipper call carries a 2 s timeout
+  (QtDBus defaults to 25 s), so a wedged clipboard daemon can never freeze the
+  tray UI.
+
 ## Tests
 
 ```bash

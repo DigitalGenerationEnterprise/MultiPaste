@@ -1,5 +1,6 @@
 #include "ActivityPanel.h"
 #include "GlobalShortcutTrigger.h"
+#include "KlipperClipboard.h"
 #include "MultipasteCore.h"
 #include "MultipasteDbusServer.h"
 #include "PasteLifter.h"
@@ -153,7 +154,9 @@ int main(int argc, char **argv)
                               {QStringLiteral("enabled"), core.enabled()},
                               {QStringLiteral("next"), next},
                               {QStringLiteral("items"), items},
-                              {QStringLiteral("activity"), activity}};
+                              {QStringLiteral("activity"), activity},
+                              {QStringLiteral("seed"),
+                               QString::fromLatin1(core.lastExternalTextFingerprintHex())}};
         QFile f(snapPath);
         if (f.open(QIODevice::WriteOnly | QIODevice::Truncate))
             f.write(QJsonDocument(obj).toJson(QJsonDocument::Compact));
@@ -184,6 +187,19 @@ int main(int argc, char **argv)
             qWarning("MultiPaste: X11 mouse trigger unavailable. Watch for the tray warning.");
     }
 
+    // Seed the core with the fingerprint of the last clipboard text this app
+    // left behind, so a restart does not re-capture its own final paste as a
+    // spurious history item.
+    {
+        QFile snapIn(snapPath);
+        if (snapIn.open(QIODevice::ReadOnly)) {
+            const QJsonObject o = QJsonDocument::fromJson(snapIn.readAll()).object();
+            const QString seed = o.value(QLatin1String("seed")).toString();
+            if (!seed.isEmpty())
+                core.seedFromFingerprint(seed.toLatin1());
+        }
+    }
+
     // Fail-over / self-repair: watch the triggers and the clipboard, and fix
     // the common degradations without a restart. Automatic runs are silent
     // unless something actually got repaired; the manual tray action always
@@ -197,7 +213,18 @@ int main(int argc, char **argv)
             shortcutFixed = true;
         if (mouse)
             mouse->rearm(); // re-issue the X11 passive grab after a server reset
-        if (notify || clipboardFixed || shortcutFixed)
+
+        // Backend escalation: if the app autostarted before Klipper was
+        // registered (common at login), drop the fallback bridge and move to
+        // the native daemon as soon as it appears.
+        bool backendFixed = false;
+        if (core.backend() != ClipboardBackend::Klipper && KlipperClipboard::available()) {
+            core.setBackend(ClipboardBackend::Klipper);
+            qInfo("MultiPaste: backend upgraded to Klipper (now available)");
+            backendFixed = true;
+        }
+
+        if (notify || clipboardFixed || shortcutFixed || backendFixed)
             tray.showMessage(QStringLiteral("MultiPaste"),
                              QStringLiteral("Repair finished."));
     };

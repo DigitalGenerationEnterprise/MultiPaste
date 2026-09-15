@@ -131,6 +131,20 @@ public:
     // was missed) and clear a stuck empty-retry state.
     void refreshFromClipboard();
 
+    // Ignore the pre-existing clipboard content on startup when it matches
+    // what a previous MultiPaste run left behind (persisted by the app as the
+    // fingerprint of the last external text). Without this, every restart
+    // re-captures the app's own final paste as a spurious first item.
+    void seedFromFingerprint(const QByteArray &fingerprint)
+    {
+        m_seedFingerprint = fingerprint;
+    }
+
+    // md5 hex of the last text read/written through the external backend,
+    // so main() can persist it across restarts. Empty when the Qt path is
+    // in use (there the self-write ring already covers a single run).
+    QByteArray lastExternalTextFingerprintHex() const;
+
     // Log is emitted for the activity panel / Plasma widget.
     void setActivityLogSize(int n);
 
@@ -180,10 +194,11 @@ private:
     QClipboard *m_clipboard = nullptr;
     QTimer *m_pollTimer = nullptr;
     bool m_emptyRetryPending = false;
-    ExternalClipboard *m_external = nullptr; // created in ctor per backend
+    ExternalClipboard *m_external = nullptr; // created per backend choice
     ClipboardBackend m_backend = ClipboardBackend::Auto;
     QByteArray m_lastExternalText; // last text read from the external source
     bool m_externalReadPending = false;
+    QByteArray m_seedFingerprint; // launch-time content to ignore exactly once
 
     struct SelfMark;
     std::vector<HistoryItem> m_items; // copy order, oldest first

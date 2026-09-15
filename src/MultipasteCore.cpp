@@ -7,6 +7,7 @@
 #include <QGuiApplication>
 #include <QTimer>
 #include <QDebug>
+#include <QCryptographicHash>
 #include <algorithm>
 
 namespace multipaste {
@@ -79,10 +80,23 @@ MultipasteCore::~MultipasteCore()
 
 void MultipasteCore::setBackend(ClipboardBackend b)
 {
+    // Allow a live switch after start() as well: resolves the autostart race
+    // where the app comes up before Plasma's clipboard daemon is registered.
+    if (m_backend == b || (b == ClipboardBackend::Auto && m_external))
+        return;
     m_backend = b;
+
     if (m_external) {
+        // The old backend may still hand callbacks in (in-flight wl-paste);
+        // detach it so the core only talks to the replacement.
+        m_external->disconnect(this);
         m_external->deleteLater();
         m_external = nullptr;
+        m_externalReadPending = false;
+    }
+    if (m_running) {
+        createExternalBackend();
+        requestExternalText();
     }
 }
 
@@ -276,6 +290,13 @@ QByteArray MultipasteCore::currentClipboardText() const
     return m_lastExternalText;
 }
 
+QByteArray MultipasteCore::lastExternalTextFingerprintHex() const
+{
+    if (m_lastExternalText.isEmpty())
+        return QByteArray();
+    return QCryptographicHash::hash(m_lastExternalText, QCryptographicHash::Md5).toHex();
+}
+
 void MultipasteCore::acceptPayload(const QMimeData *md)
 {
     const QByteArray fp = fingerprintOf(md);
@@ -285,6 +306,17 @@ void MultipasteCore::acceptPayload(const QMimeData *md)
 // Ignore our own temporary writes (async dataChanged case).
     if (isSelfContent(fp))
         return;
+
+    // Launch-time suppression: the very first payload equals what the previous
+    // run left on the clipboard -> drop it exactly once, then arm nothing.
+    if (!m_seedFingerprint.isEmpty()) {
+        if (fp == m_seedFingerprint) {
+            m_seedFingerprint.clear();
+            appendLog(QStringLiteral("ignored pre-existing clipboard (previous run)"));
+            return;
+        }
+        m_seedFingerprint.clear();
+    }
 
     // Skip empty payloads (e.g. a clipboard clear).
     qint64 bytes = 0;

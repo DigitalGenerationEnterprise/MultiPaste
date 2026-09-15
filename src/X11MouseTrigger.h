@@ -39,7 +39,7 @@ private:
     void run();
     void stop();
 
-    bool m_available = false;
+    std::atomic<bool> m_available{false}; // written by run(), read by main thread
     std::atomic<bool> m_stop{false};
     std::atomic<bool> m_rearm{false}; // set by rearm(), consumed by run()
     std::thread m_thread;
