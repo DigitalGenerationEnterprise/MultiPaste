@@ -343,6 +343,18 @@ void MultipasteCore::acceptPayload(const QMimeData *md)
         return;
     }
 
+    // Paste-queue hygiene: skip long text dumps so the FIFO only holds short
+    // snippets (configurable, see Settings -> Skip copies longer than).
+    if (m_maxCaptureChars > 0) {
+        const QString lenText = md->text();
+        if (lenText.size() > m_maxCaptureChars) {
+            appendLog(QStringLiteral("COPIED skipped (too long - %1 chars, max %2)")
+                          .arg(lenText.size())
+                          .arg(m_maxCaptureChars));
+            return;
+        }
+    }
+
     // Skip consecutive duplicates by fingerprint (exact MIME set + bytes).
     if (!m_items.empty() && m_items.back().fingerprint() == fp) {
         appendLog(QStringLiteral("COPIED again (duplicate)"));

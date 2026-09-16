@@ -64,6 +64,10 @@ public:
         return m_maxEntries;
     }
     void setMaxEntries(int n);
+    // Copies whose plain text exceeds this length are skipped (paste-queue
+    // hygiene: terminal dumps / long chat exports are noise). 0 = keep all.
+    int maxCaptureChars() const { return m_maxCaptureChars; }
+    void setMaxCaptureChars(int n) { m_maxCaptureChars = qMax(0, n); }
 
     int pollIntervalMs() const
     {
@@ -208,6 +212,7 @@ private:
 
     bool m_enabled = true;
     int m_maxEntries = 30;
+    int m_maxCaptureChars = 4000;
     int m_pollIntervalMs = 2000;
     bool m_restoreAfterPaste = true;
     int m_restoreDelayMs = 200;

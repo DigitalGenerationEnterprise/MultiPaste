@@ -119,6 +119,7 @@ int main(int argc, char **argv)
     core.setPasteLifter(&lifter);
     core.setEnabled(settings.enabled());
     core.setMaxEntries(settings.maxEntries());
+    core.setMaxCaptureChars(settings.maxCaptureChars());
     core.setPollIntervalMs(settings.pollIntervalMs());
     core.setRestoreAfterPaste(settings.restoreAfterPaste());
     core.setRestoreDelayMs(settings.restoreDelayMs());
@@ -269,11 +270,13 @@ int main(int argc, char **argv)
         SettingsDialog dlg(&settings);
         if (dlg.exec() == QDialog::Accepted) {
             core.setMaxEntries(dlg.maxEntries());
+            core.setMaxCaptureChars(dlg.maxCaptureChars());
             core.setPollIntervalMs(dlg.pollIntervalMs());
             core.setRestoreDelayMs(dlg.restoreDelayMs());
             core.setRestoreAfterPaste(dlg.restoreAfterPaste());
 
             settings.setMaxEntries(dlg.maxEntries());
+            settings.setMaxCaptureChars(dlg.maxCaptureChars());
             settings.setPollIntervalMs(dlg.pollIntervalMs());
             settings.setRestoreDelayMs(dlg.restoreDelayMs());
             settings.setRestoreAfterPaste(dlg.restoreAfterPaste());

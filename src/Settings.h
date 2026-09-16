@@ -24,6 +24,14 @@ public:
     {
         m_settings.setValue(QStringLiteral("maxEntries"), n);
     }
+    int maxCaptureChars() const
+    {
+        return m_settings.value(QStringLiteral("maxCaptureChars"), 4000).toInt();
+    }
+    void setMaxCaptureChars(int n)
+    {
+        m_settings.setValue(QStringLiteral("maxCaptureChars"), n);
+    }
 
     int pollIntervalMs() const
     {

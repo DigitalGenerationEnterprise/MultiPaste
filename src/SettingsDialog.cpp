@@ -24,6 +24,16 @@ SettingsDialog::SettingsDialog(const Settings *s, QWidget *parent)
     m_maxEntries->setRange(1, 200);
     m_maxEntries->setValue(s->maxEntries());
 
+    m_maxCaptureChars = new QSpinBox(this);
+    m_maxCaptureChars->setRange(10, 100000);
+    m_maxCaptureChars->setSingleStep(100);
+    m_maxCaptureChars->setSuffix(QStringLiteral(" chars"));
+    m_maxCaptureChars->setValue(s->maxCaptureChars());
+    m_maxCaptureChars->setToolTip(QStringLiteral(
+        "Copies longer than this (e.g. big terminal dumps) are skipped so the "
+        "paste queue only holds short snippets. Set it very high to keep "
+        "everything."));
+
     m_pollIntervalMs = new QSpinBox(this);
     m_pollIntervalMs->setRange(500, 10000);
     m_pollIntervalMs->setSingleStep(100);
@@ -57,6 +67,7 @@ SettingsDialog::SettingsDialog(const Settings *s, QWidget *parent)
 
     auto *form = new QFormLayout;
     form->addRow(QStringLiteral("Max history entries"), m_maxEntries);
+    form->addRow(QStringLiteral("Skip copies longer than"), m_maxCaptureChars);
     form->addRow(QStringLiteral("Clipboard poll interval"), m_pollIntervalMs);
     form->addRow(QStringLiteral("Restore delay"), m_restoreDelayMs);
     form->addRow(QString(), m_restoreAfterPaste);
@@ -100,6 +111,11 @@ SettingsDialog::SettingsDialog(const Settings *s, QWidget *parent)
 int SettingsDialog::maxEntries() const
 {
     return m_maxEntries->value();
+}
+
+int SettingsDialog::maxCaptureChars() const
+{
+    return m_maxCaptureChars->value();
 }
 
 int SettingsDialog::pollIntervalMs() const

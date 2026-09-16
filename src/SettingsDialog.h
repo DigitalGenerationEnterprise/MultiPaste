@@ -20,6 +20,7 @@ public:
     explicit SettingsDialog(const Settings *settings, QWidget *parent = nullptr);
 
     int maxEntries() const;
+    int maxCaptureChars() const;
     int pollIntervalMs() const;
     int restoreDelayMs() const;
     bool restoreAfterPaste() const;
@@ -29,6 +30,7 @@ public:
 
 private:
     QSpinBox *m_maxEntries = nullptr;
+    QSpinBox *m_maxCaptureChars = nullptr;
     QSpinBox *m_pollIntervalMs = nullptr;
     QSpinBox *m_restoreDelayMs = nullptr;
     QCheckBox *m_restoreAfterPaste = nullptr;

@@ -13,7 +13,7 @@
         "Id": "org.multipaste.activity",
         "License": "MIT",
         "Name": "MultiPaste Activity",
-        "Version": "1.0.3",
+        "Version": "1.0.4",
         "Website": "https://github.com/DigitalGenerationEnterprise/MultiPaste"
     },
     "X-KDE-ParentApp": "",
