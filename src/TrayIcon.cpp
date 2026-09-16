@@ -28,7 +28,6 @@ TrayIcon::TrayIcon(MultipasteCore *core, Settings *settings, QObject *parent)
     connect(&m_icon, &QSystemTrayIcon::activated, this, &TrayIcon::onActivated);
 
     rebuildMenu();
-    m_icon.setToolTip(QStringLiteral("MultiPaste"));
 }
 
 QIcon TrayIcon::makeIcon() const
@@ -61,7 +60,7 @@ QString TrayIcon::itemLabel(int index) const
     const HistoryItem *it = m_core->itemAt(index);
     if (!it)
         return QString();
-    QString label = QStringLiteral("%1  %2").arg(index + 1).arg(it->description());
+    QString label = QStringLiteral("%1  %2").arg(index + 1).arg(it->preview());
     if (label.size() > 40)
         label = label.left(37) + QStringLiteral("...");
     return label;
@@ -74,6 +73,18 @@ void TrayIcon::rebuildMenu()
     else
         m_menu->clear();
     QMenu *menu = m_menu;
+
+    // Live tooltip: what is queued and how to paste it.
+    QString tip = QStringLiteral("MultiPaste\n%1 item%2 - next:")
+                      .arg(m_core->count())
+                      .arg(m_core->count() == 1 ? QString() : QStringLiteral("s"));
+    if (const HistoryItem *nx = m_core->itemAt(m_core->nextIndex()))
+        tip += QStringLiteral(" %1").arg(nx->preview());
+    else
+        tip += QStringLiteral(" (none)");
+    tip += QStringLiteral("\nCopy anything, then: %1, then Ctrl+V")
+               .arg(m_settings->shortcut());
+    m_icon.setToolTip(tip);
 
     QAction *status = menu->addAction(QStringLiteral("%1  -  next: %2")
                                           .arg(m_core->statusLine(), m_core->positionLine()));

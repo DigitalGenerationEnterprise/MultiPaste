@@ -90,6 +90,12 @@ Item {
         return (i + 1) + "  " + t;
     }
 
+    function nextLabel() {
+        if (!root.snap.items || root.snap.items.length === 0) return "-";
+        var it = root.snap.items[root.snap.next];
+        return it !== undefined ? root.label(root.snap.next) : "-";
+    }
+
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 6
@@ -106,7 +112,7 @@ Item {
             Item { Layout.fillWidth: true }
             PlasmaComponents.Label {
                 text: root.snap.enabled
-                    ? "next: " + ((root.snap.next + 1) || "-")
+                    ? "next: " + root.nextLabel()
                     : "disabled"
                 color: root.snap.enabled ? root.highlightColor
                                          : root.negativeTextColor
@@ -202,4 +208,4 @@ Item {
     }
 
 }
-    Component.onCompleted: refresh()
+

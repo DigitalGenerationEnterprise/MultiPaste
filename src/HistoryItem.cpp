@@ -90,6 +90,31 @@ QString HistoryItem::description() const
     return QStringLiteral("BINARY");
 }
 
+QString HistoryItem::preview() const
+{
+    if (!m_data)
+        return QStringLiteral("EMPTY");
+
+    const QStringList formats = m_data->formats();
+    QString s;
+    if (formats.contains(QStringLiteral("text/uri-list")))
+        s = QString::fromUtf8(m_data->data(QStringLiteral("text/uri-list")))
+                .split(u'\n')
+                .value(0)
+                .trimmed();
+    else if (formats.contains(QStringLiteral("text/plain"))
+             || formats.contains(QStringLiteral("text/plain;charset=utf-8")))
+        s = m_data->text();
+
+    if (s.trimmed().isEmpty())
+        return description(); // no readable text (images, binaries, files) - keep the type label
+
+    s = s.trimmed().simplified();
+    if (s.length() > 40)
+        s = s.left(37) + QStringLiteral("…");
+    return s;
+}
+
 QByteArray HistoryItem::fingerprint() const
 {
     if (m_fingerprintValid)

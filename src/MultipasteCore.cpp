@@ -381,7 +381,7 @@ void MultipasteCore::acceptPayload(const QMimeData *md)
         m_lastExternalText = text;
 
     appendLog(QStringLiteral("COPIED  %1  (item %2 of %3)")
-                  .arg(m_items.back().description())
+                  .arg(m_items.back().preview())
                   .arg(m_items.size())
                   .arg(m_items.size()));
 
@@ -484,7 +484,7 @@ void MultipasteCore::pasteNext()
 
     const int idx = nextIndex();
     HistoryItem &item = m_items[idx];
-    const QString description = item.description();
+    const QString description = item.preview();
     const QByteArray fingerprint = item.fingerprint();
 
     setClipboardIgnoring(HistoryItem::deepCopy(item.mime()).release());
@@ -581,7 +581,7 @@ QStringList MultipasteCore::descriptions() const
     QStringList out;
     out.reserve(int(m_items.size()));
     for (const HistoryItem &it : m_items)
-        out.append(it.description());
+        out.append(it.preview());
     return out;
 }
 

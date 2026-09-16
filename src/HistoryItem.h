@@ -46,6 +46,11 @@ public:
     // Short human-friendly label: "TEXT", "IMAGE", "URL", "HTML", "FILES", ...
     QString description() const;
 
+    // Compact one-line preview of the content itself ("hello", a URL, a file
+    // path, ...); falls back to description() for payloads without readable
+    // text (images, binaries).
+    QString preview() const;
+
     // Stable fingerprint of the payload, used for dedup and for ignoring our
     // own temporary clipboard writes. Computed lazily and cached.
     QByteArray fingerprint() const;
