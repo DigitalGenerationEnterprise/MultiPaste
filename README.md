@@ -62,7 +62,20 @@ Wayland).
   ```
 
   Optional, for automatic pasting while a window is focused: `ydotool` or
-  `wtype`.
+  `wtype`. On KWin/Wayland use **ydotool** (kernel-level `uinput`
+  injection; `wtype` needs the virtual-keyboard protocol, which KWin does
+  not offer). One-time setup:
+
+  ```bash
+  sudo apt install ydotool
+  systemctl --user enable --now ydotool
+  ```
+
+  The app discovers ydotool automatically on the next paste — no rebuild or
+  config needed. Each press of the global shortcut then loads the next item
+  *and* pastes it instantly (no manual key press). `PasteLifter` tries
+  `ydotool` first, then `wtype`, then falls back to "loaded — press
+  Ctrl+V", which still works without any helper.
 
 ## Install
 
@@ -218,8 +231,10 @@ The global shortcut is registered with KGlobalAccel (see
 - *Nothing is captured on Wayland:* install `wl-clipboard` (`sudo apt install
   wl-clipboard`); without it the app can only read the clipboard while it has
   focus itself.
-- *Nothing pastes on Wayland:* install `ydotool` or `wtype` for auto-injection;
-  otherwise you get a tray hint and can `Ctrl+V` yourself.
+- *Nothing pastes on Wayland:* install `ydotool` + its daemon (`sudo apt
+  install ydotool && systemctl --user enable --now ydotool`); the app then
+  auto-pastes with one shortcut press. Without a helper you get a tray hint
+  and can `Ctrl+V` yourself.
 - *Widget shows a QML error / "Button is not a type":* restart plasmashell
   (`kquitapp6 plasmashell` re-launches it) so the updated widget QML loads.
 - *"Already running" after a crash:* wait 5 s for the stale-lock recovery, or
